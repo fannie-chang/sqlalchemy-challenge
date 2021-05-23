@@ -143,25 +143,32 @@ def start(start):
         
 @app.route("/api/v1.0/<start>/<end>")
 
-def start_end():
+def start_end(start, end):
 
     session = Session(engine)
 
-    query_date = dt.date(2017,8,23) - dt.timedelta(days=365)
 
-    results_start_end = sel = [func.min(Measurements.tobs),
+
+    sel = [func.min(Measurements.tobs),
       func.max(Measurements.tobs),
       func.avg(Measurements.tobs)]
 
 
-    most_active_station = session.query(*sel).\
-    group_by(Measurements.station).\
-    filter(Measurements.date >=query_date).\
-    filter(Measurements.date <= query_date).\
-    order_by(func.count(Measurements.id).desc()).all()
+    results_start_end = session.query(*sel).filter(Measurements.date >= query_date).\
+    filter(Measurements.date <=query_date).all()
 
 
-    return jsonify(results_start_end)
+    start_end_list=[]
+
+    for min,avg,max in results_start_end:
+        start_end_dict = {}
+        start_end_dict["TMIN"] = min
+
+        start_end_dict["TMAX"] = max
+        start_end_dict["TAVG"] = avg
+        start_end_list.append(start_end_dict)
+
+        return jsonify(start_end_list)
 
 
 if __name__ == '__main__':
