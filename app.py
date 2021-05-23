@@ -111,23 +111,30 @@ def tobs():
 
 @app.route("/api/v1.0/<start>")
 
-def start():
+def start(start):
 
     session = Session(engine)
 
-    recent_date = session.query(Measurements.date).order_by(Measurements.date.desc()).first()
-
+    
     sel = [func.min(Measurements.tobs),
       func.max(Measurements.tobs),
       func.avg(Measurements.tobs)]
 
 
-    results_start = session.query(*sel).\
-    group_by(Measurements.station).\
-    filter(Measurements.date >=query_date).\
-    order_by(func.count(Measurements.id).desc()).all()
+    results_start = session.query(*sel).filter(Measurements.date >= query_date).all()
 
-    return(results_start)
+
+    start_date_list=[]
+
+    for min,avg,max in results_start:
+        start_date_dict = {}
+        start_date_dict["TMIN"] = min
+
+        start_date_dict["TMAX"] = max
+        start_date_dict["TAVG"] = avg
+        start_date_list.append(start_date_dict)
+
+        return jsonify(start_date_list)
 
     
 
